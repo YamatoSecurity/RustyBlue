@@ -22,14 +22,15 @@ pub fn check_command(
     let mut base64 = "".to_string();
 
     let empty = "".to_string();
+    let regex = configs::singleton().cached_regex;
     for line in configs::singleton().whitelist {
         let r_str = line.get(0).unwrap_or(&empty);
         if r_str.is_empty() {
             continue;
         }
 
-        let r = Regex::new(r_str);
-        if r.is_ok() && r.unwrap().is_match(commandline) {
+        let r = regex.get(r_str).unwrap();
+        if r.is_match(commandline) {
             return;
         }
     }
@@ -42,24 +43,23 @@ pub fn check_command(
     text.push_str(&check_obfu(commandline));
     text.push_str(&check_regex(commandline, 0));
     text.push_str(&check_creator(commandline, creator));
-    if Regex::new(r"\-enc.*[A-Za-z0-9/+=]{100}")
+    if regex.get(r"\-enc.*[A-Za-z0-9/+=]{100}").unwrap()
+        .is_match(commandline)
+    {
+        let re = regex.get(r"^.* \-Enc(odedCommand)? ").unwrap();
+        base64.push_str(&re.replace_all(commandline, ""));
+    } else if regex.get(r":FromBase64String\(")
         .unwrap()
         .is_match(commandline)
     {
-        let re = Regex::new(r"^.* \-Enc(odedCommand)? ").unwrap();
+        let re = regex.get(r"^.*:FromBase64String\('*").unwrap();
         base64.push_str(&re.replace_all(commandline, ""));
-    } else if Regex::new(r":FromBase64String\(")
-        .unwrap()
-        .is_match(commandline)
-    {
-        let re = Regex::new(r"^.*:FromBase64String\('*").unwrap();
-        base64.push_str(&re.replace_all(commandline, ""));
-        let re = Regex::new(r"'.*$").unwrap();
+        let re = regex.get(r"'.*$").unwrap();
         base64.push_str(&re.replace_all(&base64.to_string(), ""));
     }
     if let Ok(decoded) = base64::decode(&base64) {
         if !base64.is_empty() {
-            if Regex::new(r"Compression.GzipStream.*Decompress")
+            if regex.get(r"Compression.GzipStream.*Decompress")
                 .unwrap()
                 .is_match(commandline)
             {
@@ -96,11 +96,13 @@ fn check_obfu(string: &str) -> std::string::String {
     let length = lowercasestring.len() as f64;
     let mut minpercent = 0.65;
     let maxbinary = 0.50;
+    let regex = configs::singleton().cached_regex;
 
-    let mut re = Regex::new(r"[a-z0-9/¥;:|.]").unwrap();
+    let mut re = regex.get(r"[a-z0-9/¥;:|.]").unwrap();
+ 
     let noalphastring = re.replace_all(&lowercasestring, "");
 
-    re = Regex::new(r"[01]").unwrap();
+    re = regex.get(r"[01]").unwrap();
     let nobinarystring = re.replace_all(&lowercasestring, "");
 
     if length > 0.0 {
@@ -131,6 +133,7 @@ fn check_obfu(string: &str) -> std::string::String {
 pub fn check_regex(string: &str, r#type: usize) -> std::string::String {
     let empty = "".to_string();
     let mut regextext = "".to_string();
+    let regex = configs::singleton().cached_regex;
     for line in configs::singleton().regex {
         let type_str = line.get(0).unwrap_or(&empty);
         if type_str != &r#type.to_string() {
@@ -142,8 +145,8 @@ pub fn check_regex(string: &str, r#type: usize) -> std::string::String {
             continue;
         }
 
-        let re = Regex::new(regex_str);
-        if re.is_err() || re.unwrap().is_match(string) == false {
+        let re = regex.get(regex_str).unwrap();
+        if re.is_match(string) == false {
             continue;
         }
 
