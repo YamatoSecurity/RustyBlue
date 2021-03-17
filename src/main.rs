@@ -5,7 +5,10 @@ use rusty_blue::detections::configs;
 use rusty_blue::detections::detection;
 use std::{fs, path::PathBuf, process};
 
+use std::time::{Instant};
+
 fn main() {
+    let start = Instant::now();
     if let Some(filepath) = configs::singleton().args.value_of("filepath") {
         parse_file(&filepath.to_string());
     }
@@ -13,6 +16,9 @@ fn main() {
     if configs::singleton().args.is_present("credits") {
         print_credits();
     }
+
+    let end = start.elapsed();
+    println!("{}.{:03}秒経過しました。", end.as_secs(), end.subsec_nanos() / 1_000_000);
 }
 
 fn print_credits() {

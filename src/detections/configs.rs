@@ -10,6 +10,11 @@ pub struct SingletonReader {
     pub args: ArgMatches<'static>,
 }
 
+pub fn get_thread_num() -> i32 {
+    let conf = singleton();
+    let thread_number_str = conf.args.value_of("threadnumber").unwrap_or("1");
+    return thread_number_str.parse().unwrap();
+}
 pub fn singleton() -> Box<SingletonReader> {
     static mut SINGLETON: Option<Box<SingletonReader>> = Option::None;
     static ONCE: Once = Once::new();
@@ -47,7 +52,8 @@ fn build_app() -> clap::App<'static, 'static> {
         .arg(Arg::from_usage(
             "-f --filepath=[FILEPATH] 'analyze event file'",
         ))
-        .arg(Arg::from_usage("-c --credits 'print credits infomation'"))
+        .arg(Arg::from_usage("-c --credits 'print credits information'"))
+        .arg(Arg::from_usage("-t --threadnumber=[THREADNUMBER] 'thread count(default: 1)'"))
 }
 
 fn read_csv(filename: &str) -> Vec<Vec<String>> {
