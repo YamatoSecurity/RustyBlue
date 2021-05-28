@@ -324,7 +324,7 @@ impl Security {
         }
 
         msges.push(format!("Date: {}", system_time));
-        msges.push("Message: Sensititive Privilege Use Exceeds Threshold".to_string());
+        msges.push("Message: Sensitive Privilege Use Exceeds Threshold".to_string());
         msges.push(
             "Potentially indicative of Mimikatz, multiple sensitive privilege calls have been made"
                 .to_string(),
@@ -1136,7 +1136,7 @@ mod tests {
                     ite.next().unwrap_or(&"".to_string())
                 );
                 assert_eq!(
-                    &"Message: Sensititive Privilege Use Exceeds Threshold".to_string(),
+                    &"Message: Sensitive Privilege Use Exceeds Threshold".to_string(),
                     ite.next().unwrap_or(&"".to_string())
                 );
                 assert_eq!(

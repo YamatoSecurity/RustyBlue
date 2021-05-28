@@ -1,4 +1,5 @@
 use crate::detections::print::MessageNotation;
+use clap::ArgGroup;
 use clap::{App, AppSettings, Arg, ArgMatches};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -75,13 +76,16 @@ fn build_app<'a>() -> ArgMatches<'a> {
         .version("1.0.0")
         .author("YamatoSecurity <info@yamatosecurity.com>")
         .setting(AppSettings::VersionlessSubcommands)
-        .arg(Arg::from_usage(
-            "-f --filepath=[FILEPATH] 'analyze event file'",
-        ))
-        .arg(Arg::from_usage(
-            "-d --dirpath=[DIRECTORYPATH] 'analyze event log files in directory'",
-        ))
-        .arg(Arg::from_usage("-c --credits 'print credits infomation'"))
+        .args_from_usage(
+            "-f --filepath=[FILEPATH] 'analyze event file'
+            -d --dirpath=[DIRECTORYPATH] 'analyze event log files in directory'
+            -c --credits 'print credits infomation'",
+        )
+        .group(
+            ArgGroup::with_name("requireargs")
+                .args(&["filepath", "dirpath", "credits"])
+                .required(true),
+        )
         .get_matches()
 }
 
